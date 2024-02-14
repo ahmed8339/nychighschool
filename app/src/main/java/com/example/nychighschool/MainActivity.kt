@@ -3,7 +3,7 @@ package com.example.nychighschool
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,16 +18,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModelProvider
 import com.example.nychighschool.ui.theme.NYCHighSchoolTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 
 class MainActivity : ComponentActivity() {
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -49,9 +49,14 @@ fun HighSchoolListScreen(viewModel: SchoolViewModel = viewModel()){
     val schools by viewModel.schools.collectAsState()
 
     Column {
-        LazyColumn{
-            items(schools) { school ->
-                SchoolListItem(school)
+        if (schools.isEmpty()) {
+            // Loading state
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+        } else {
+            LazyColumn {
+                items(schools) { school ->
+                    SchoolListItem(school, viewModel = viewModel)
+                }
             }
         }
     }
@@ -59,10 +64,14 @@ fun HighSchoolListScreen(viewModel: SchoolViewModel = viewModel()){
 
 
 @Composable
-fun SchoolListItem(school: School){
+fun SchoolListItem(school: School, viewModel: SchoolViewModel){
     Card(modifier = Modifier
         .fillMaxWidth()
-        .padding(16.dp)) {
+        .padding(16.dp)
+        .clickable {
+            viewModel.selectSchool(school) }
+    )
+    {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = school.school_name)
             Spacer(modifier = Modifier.height(8.dp))
@@ -71,3 +80,23 @@ fun SchoolListItem(school: School){
     }
     
 }
+
+@Composable
+fun SchoolDetailScreen(viewModel: SchoolViewModel) {
+    val selectedSchool by viewModel.selectedSchool.collectAsState()
+
+    if (selectedSchool != null) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            selectedSchool?.overview_paragraph?.let { Text(text = it) }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    } else {
+        // Handle case where no school is selected
+        Text("No school selected")
+    }
+}
+
