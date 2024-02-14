@@ -18,8 +18,8 @@ class SchoolViewModel() : ViewModel() {
     private val _schools = MutableStateFlow<List<School>>(emptyList())
     val schools :StateFlow<List<School>> = _schools
 
-    private val _selectedSchool = MutableStateFlow<School?>(null)
-    val selectedSchool: StateFlow<School?> = _selectedSchool
+    private val _selectedSchool = MutableStateFlow<String?>("")
+    val selectedSchool: StateFlow<String?> = _selectedSchool
 
     init {
        fetchData()
@@ -41,7 +41,7 @@ class SchoolViewModel() : ViewModel() {
     }
 
     fun selectSchool(school: School) {
-        _selectedSchool.value = school
+        _selectedSchool.value = school.overview_paragraph
     }
 }
 

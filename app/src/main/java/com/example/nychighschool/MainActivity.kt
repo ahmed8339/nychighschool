@@ -26,6 +26,10 @@ import androidx.compose.ui.unit.dp
 import com.example.nychighschool.ui.theme.NYCHighSchoolTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.flow.collect
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,8 +40,8 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     //SchoolListItem(school = School("Liberation Diploma Plus High School", "261", "oVERvIEW"))
-                    val viewModel: SchoolViewModel = viewModel<SchoolViewModel>()
-                    HighSchoolListScreen(viewModel)
+
+                    AppNavigation()
                 }
             }
         }
@@ -45,7 +49,21 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun HighSchoolListScreen(viewModel: SchoolViewModel = viewModel()){
+fun AppNavigation() {
+    val navController = rememberNavController()
+    val viewModel: SchoolViewModel = viewModel<SchoolViewModel>()
+    NavHost(navController = navController, startDestination = "highSchoolList") {
+        composable("highSchoolList") {
+            HighSchoolListScreen(viewModel = viewModel,navController = navController)
+        }
+        composable("schoolDetail") {
+            SchoolDetailScreen(viewModel = viewModel)
+        }
+    }
+}
+
+@Composable
+fun HighSchoolListScreen(viewModel: SchoolViewModel = viewModel(), navController: NavController){
     val schools by viewModel.schools.collectAsState()
 
     Column {
@@ -55,7 +73,7 @@ fun HighSchoolListScreen(viewModel: SchoolViewModel = viewModel()){
         } else {
             LazyColumn {
                 items(schools) { school ->
-                    SchoolListItem(school, viewModel = viewModel)
+                    SchoolListItem(school, viewModel = viewModel, navController)
                 }
             }
         }
@@ -64,12 +82,13 @@ fun HighSchoolListScreen(viewModel: SchoolViewModel = viewModel()){
 
 
 @Composable
-fun SchoolListItem(school: School, viewModel: SchoolViewModel){
+fun SchoolListItem(school: School, viewModel: SchoolViewModel, navController: NavController){
     Card(modifier = Modifier
         .fillMaxWidth()
         .padding(16.dp)
         .clickable {
-            viewModel.selectSchool(school) }
+            viewModel.selectSchool(school)
+            navController.navigate("schoolDetail")}
     )
     {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -84,19 +103,14 @@ fun SchoolListItem(school: School, viewModel: SchoolViewModel){
 @Composable
 fun SchoolDetailScreen(viewModel: SchoolViewModel) {
     val selectedSchool by viewModel.selectedSchool.collectAsState()
-
-    if (selectedSchool != null) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            selectedSchool?.overview_paragraph?.let { Text(text = it) }
+            selectedSchool?.let { Text(text = it, style = MaterialTheme.typography.bodyLarge) }
             Spacer(modifier = Modifier.height(8.dp))
         }
-    } else {
-        // Handle case where no school is selected
-        Text("No school selected")
-    }
+
 }
 
